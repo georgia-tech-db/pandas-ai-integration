@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import openai
+from gpt4all import GPT4All
 from langchain.llms import OpenAI
 from langchain.agents import create_pandas_dataframe_agent
 from langchain.chat_models import ChatOpenAI
@@ -72,6 +73,11 @@ class AIDataFrame(pd.DataFrame):
         self.openai_model = "text-davinci-003"
         return
     
+    def initialize_local_llm_model(self):
+        local_llm_model = self.config.get_local_llm_model()
+        self.local_llm = GPT4All(local_llm_model)
+        return
+
     def query_dataframe(self, query):
         if query not in self.cache:
             ans = self.llm_agent.run(query)
@@ -88,7 +94,9 @@ class AIDataFrame(pd.DataFrame):
 
         return answer
 
-    def chat(self, prompt):
+    def chat(self, prompt, local=False):
+        if local:
+            return self.local_llm.generate(prompt)
         ans = self.llm_agent.run(prompt)
         return ans
 
