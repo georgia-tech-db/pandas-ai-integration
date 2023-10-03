@@ -40,12 +40,14 @@ class ChatWithPandas(AbstractFunction):
     def forward(self, df: pd.DataFrame) -> pd.DataFrame:
         
         query = df[0][0]
+        print("query is: QQQQ", query)
         req_df = df.drop([0], axis=1)
         
         smart_df = AIDataFrame(req_df, description="A dataframe about cars")
-        smart_df.initialize_middleware()
-
-        response = smart_df.chat(query)
+        # smart_df.initialize_middleware()
+        smart_df.initialize_local_llm_model()
+        # response = smart_df.chat(query)
+        response = smart_df.chat(query, local=True)
         
         df_dict = {"response": [response]}
         
