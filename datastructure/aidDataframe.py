@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import openai
+import subprocess
 from gpt4all import GPT4All
 from langchain.llms import OpenAI
 from langchain.agents import create_pandas_dataframe_agent
@@ -16,6 +17,7 @@ class AIDataFrame(pd.DataFrame):
 
         #initialize pandas dataframe
         self.pd_df = df
+        print("pd_df INITTT: \n", str(self.pd_df))
         self.config = Config()
         
         if len(df)>0:
@@ -31,7 +33,8 @@ class AIDataFrame(pd.DataFrame):
             self.config = config
         
         #set name
-        self.name = name
+        if name:
+            self.name = name
 
         #setup cache
         self.cache = {}
@@ -99,12 +102,18 @@ class AIDataFrame(pd.DataFrame):
 
     def chat(self, prompt, local=False):
         if local:
+            print("df HEREEEE\n", str(self.pd_df))
+            # query = f"""There is a dataframe in pandas (python). This is the result of print(self.pd_df.head()):
+            # {str(self.pd_df.head())}\nAnswer the question: {prompt}. """
             query = f"""There is a dataframe in pandas (python). The name of the
-            dataframe is pd_df. This is the result of print(self.pd_df.head()):
-            {str(self.pd_df.head())}\nAnswer the question:    
-            Question : {prompt}. """
+            dataframe is self.pd_df. This is the result of print(self.pd_df):\n
+            {str(self.pd_df.head())}. Return a python script with comments to get the answer to the following question: {prompt}. Do not write code to load the CSV file."""
+            print("QUERYYY QQQQ", query)
+            # query = f"""There is a dataframe in pandas (python). The name of the
+            # dataframe is self.pd_df. This is the result of print(self.pd_df.head()):
+            # {str(self.pd_df.head())}. Return a python script without any other text to the following question: {prompt}. Do not write code to load the CSV file."""
             return self.local_llm.generate(query)
-        ans = self.llm_agent.run(prompt)
-        return ans
+        else:
+            return self.llm_agent.run(prompt)
 
         

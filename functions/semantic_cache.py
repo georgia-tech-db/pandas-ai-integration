@@ -39,23 +39,21 @@ class ChatWithPandas(AbstractFunction):
             )
         ],
     )
-    def forward(self, df: pd.DataFrame) -> pd.DataFrame:
-        
+    def forward(self, df: pd.DataFrame):
+        # print("full df: \n", df)
         query = df[0][0]
         print("query is: QQQQ", query)
         req_df = df.drop([0], axis=1)
-        
+        # print("req_df: \n", req_df)
         smart_df = AIDataFrame(req_df, description="A dataframe about cars")
         if self.use_local_llm:
             smart_df.initialize_local_llm_model(local_llm=self.local_llm_model)
         else:
             smart_df.initialize_middleware()
-        
-        # response = smart_df.chat(query)
         response = smart_df.chat(query, local=True)
-        
+        print("ANSWERRR:", response)
         df_dict = {"response": [response]}
         
         ans_df = pd.DataFrame(df_dict)
         return pd.DataFrame(ans_df)
-
+    
