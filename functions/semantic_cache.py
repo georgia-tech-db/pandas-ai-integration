@@ -1,6 +1,6 @@
 
 import pandas as pd
-
+import subprocess
 from evadb.catalog.catalog_type import NdArrayType
 from evadb.functions.abstract.abstract_function import AbstractFunction
 from evadb.functions.decorators.decorators import forward, setup
@@ -13,9 +13,10 @@ class ChatWithPandas(AbstractFunction):
 
 
     @setup(cacheable=False, function_type="FeatureExtraction", batchable=False)
-    def setup(self, use_local_llm=False, local_llm_model=None):
+    def setup(self, use_local_llm=False, local_llm_model=None, csv_path=None):
         self.use_local_llm = use_local_llm
         self.local_llm_model = local_llm_model
+        self.csv_path = csv_path
         pass
 
     @property
@@ -46,15 +47,14 @@ class ChatWithPandas(AbstractFunction):
         if self.use_local_llm:
             smart_df.initialize_local_llm_model(local_llm=self.local_llm_model)
             prompt = f"""There is a dataframe in pandas (python). This is the result of print(req_df.head()):\n
-            {str(req_df.head())}. Answer to the following question: {query}."""
+            {str(req_df.head())}. Return a python script to get the answer to the following question: {query}."""
             print("PROMPTT", prompt)
             response = smart_df.chat(prompt, local=self.use_local_llm)
-            script = response.split("```")[1]
+            script = response.split("```")[1].lstrip("python")
             # script = response
-            load_df = f"import pandas as pd\ndf = pd.read_csv('/home/preethi/projects/pandas-ai-integration/data/cars.csv')\n"
-            print(load_df + "\n" + script)
+            load_df = f"import pandas as pd\nreq_df = pd.read_csv('{self.csv_path}')\n"
             ans = load_df + "\n" + script
-            print("ANSWERRR/n", ans)
+            print("ANSWERRR\n", ans)
         else:
             smart_df.initialize_middleware()
             response = smart_df.chat(query, local=self.use_local_llm)

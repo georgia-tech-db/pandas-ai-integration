@@ -9,7 +9,7 @@ print("Connected to EvaDB")
 #             IMPL  './functions/semantic_cache.py';
 #             """
 create_function_query = f"""CREATE FUNCTION IF NOT EXISTS ChatWithPandas
-                                    IMPL  './functions/semantic_cache.py' use_local_llm 'True' local_llm_model "llama-2-7b-chat.ggmlv3.q4_0.bin";
+                                    IMPL  './functions/semantic_cache.py' use_local_llm 'True' local_llm_model "llama-2-7b-chat.ggmlv3.q4_0.bin" csv_path "./data/cars.csv";
                                     """
 cursor.query("DROP FUNCTION IF EXISTS ChatWithPandas;").execute()
 cursor.query(create_function_query).execute()
