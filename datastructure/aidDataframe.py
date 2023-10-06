@@ -102,17 +102,20 @@ class AIDataFrame(pd.DataFrame):
 
     def chat(self, prompt, local=False):
         if local:
-            print("df HEREEEE\n", str(self.pd_df))
-            # query = f"""There is a dataframe in pandas (python). This is the result of print(self.pd_df.head()):
-            # {str(self.pd_df.head())}\nAnswer the question: {prompt}. """
-            query = f"""There is a dataframe in pandas (python). The name of the
-            dataframe is self.pd_df. This is the result of print(self.pd_df):\n
-            {str(self.pd_df.head())}. Return a python script with comments to get the answer to the following question: {prompt}. Do not write code to load the CSV file."""
-            print("QUERYYY QQQQ", query)
+            # print("QUERYYY QQQQ", query)
+            # query = f"""There is a dataframe in pandas (python). The name of the
+            # dataframe is self.pd_df. This is the result of print(self.pd_df):\n
+            # {str(self.pd_df.head())}. Return a python script without any other text to get the answer to the following question: {prompt}. Do not write code to load the CSV file."""
+            # print("QUERYYY QQQQ", query)
+            # query = f"""There is a dataframe in pandas (python). The name of the
+            # dataframe is self.pd_df. This is the result of print(self.pd_df):\n
+            # {str(self.pd_df.head())}. Please provide a Python script without any introductory text answer the question: {prompt}. Do not write code to load the CSV file."""
+            
             # query = f"""There is a dataframe in pandas (python). The name of the
             # dataframe is self.pd_df. This is the result of print(self.pd_df.head()):
             # {str(self.pd_df.head())}. Return a python script without any other text to the following question: {prompt}. Do not write code to load the CSV file."""
-            return self.local_llm.generate(query)
+            return self.local_llm.generate(prompt)
+        
         else:
             return self.llm_agent.run(prompt)
 
