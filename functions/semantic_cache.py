@@ -13,7 +13,9 @@ class ChatWithPandas(AbstractFunction):
 
 
     @setup(cacheable=False, function_type="FeatureExtraction", batchable=False)
-    def setup(self):
+    def setup(self, use_local_llm=False, local_llm_model=None):
+        self.use_local_llm = use_local_llm
+        self.local_llm_model = local_llm_model
         pass
 
     @property
@@ -44,8 +46,11 @@ class ChatWithPandas(AbstractFunction):
         req_df = df.drop([0], axis=1)
         
         smart_df = AIDataFrame(req_df, description="A dataframe about cars")
-        # smart_df.initialize_middleware()
-        smart_df.initialize_local_llm_model()
+        if self.use_local_llm:
+            smart_df.initialize_local_llm_model(local_llm=self.local_llm_model)
+        else:
+            smart_df.initialize_middleware()
+        
         # response = smart_df.chat(query)
         response = smart_df.chat(query, local=True)
         

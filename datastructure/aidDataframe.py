@@ -73,8 +73,11 @@ class AIDataFrame(pd.DataFrame):
         self.openai_model = "text-davinci-003"
         return
     
-    def initialize_local_llm_model(self):
-        local_llm_model = self.config.get_local_llm_model()
+    def initialize_local_llm_model(self, local_llm=None):
+        if local_llm:
+            local_llm_model = local_llm
+        else:
+            local_llm_model = self.config.get_local_llm_model(local_llm_model)
         self.local_llm = GPT4All(local_llm_model)
         return
 
@@ -96,7 +99,11 @@ class AIDataFrame(pd.DataFrame):
 
     def chat(self, prompt, local=False):
         if local:
-            return self.local_llm.generate(prompt)
+            query = f"""There is a dataframe in pandas (python). The name of the
+            dataframe is pd_df. This is the result of print(self.pd_df.head()):
+            {str(self.pd_df.head())}\nAnswer the question:    
+            Question : {prompt}. """
+            return self.local_llm.generate(query)
         ans = self.llm_agent.run(prompt)
         return ans
 
