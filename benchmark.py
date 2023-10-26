@@ -85,7 +85,7 @@ data = cursor.query(query).execute()
 #clean ends here
 
 
-data = data.dropna()
+# data = data.dropna()
 # Identify categorical columns
 categorical_cols = data.select_dtypes(include=['object']).columns
 
