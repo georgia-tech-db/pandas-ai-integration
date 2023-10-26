@@ -75,12 +75,13 @@ print("loaded data")
 data = pd.read_csv('data/Airbnb/missing_values/dirty_test1.csv')
 
 #clean using llm
-# query = f""" SELECT ChatWithPandas('cleaning',\
-#       'impute null values with average of the column if an integer or float. replace with an empty string if column is a string.\
-#         remove duplicate rows.', \
-#             id, name, mpg, cyl, disp, hp, drat, wt, qsec, vs, am, gear, carb) FROM AIRBNB_DATA5;
-# """
-# cleaned_df = cursor.query(query).execute()
+
+query = f""" SELECT ChatWithPandas('cleaning',\
+      'impute null values with average of the column if an integer or float. replace with an empty string if column is a string.\
+        remove duplicate rows.', \
+            Bathrooms, Bedrooms, Beds, LocationName, NumGuests, NumReviews, Price, Rating, latitude, longitude, zipcode, pop2016, pop2010, pop2000, cost_living_index, land_area, water_area, pop_density, number_of_males, number_of_females, prop_taxes_paid_2016, median_taxes_with_mortgage, median_taxes_no_mortgage, median_house_value, median_household_income, median_monthly_owner_costs_with_mortgage, median_monthly_owner_costs_no_mortgage, median_gross_rent, median_asking_price_for_sale_home_condo, unemployment, number_of_homes, count_of_abnb, density_of_abnb, avg_abnb_price_by_zipcode, avg_num_reviews_by_zipcode, avg_rating_by_zipcode, avg_num_bathrooms_by_zipcode, avg_num_bedrooms_by_zipcode, avg_num_beds_by_zipcode, avg_num_guests_by_zipcode) FROM AIRBNB_DATA5;
+"""
+data = cursor.query(query).execute()
 #clean ends here
 
 
