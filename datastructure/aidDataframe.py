@@ -123,6 +123,25 @@ class AIDataFrame(pd.DataFrame):
             The response should have only the python code and no additional text. \
             I repeat.. give the python code only for the function. NO ADDITIONAL CODE."
         return prompt
+    
+    def create_general_data_cleaning_prompt(self):
+        prompt = f"I need you to write a python3.8 program for the following dataframe. \
+            You are given the following pandas dataframe. \
+            The dataframe has {self.col_count} columns. The columns are {list(self.columns)}. \
+            The first 2 rows of data in the csv format are {self.iloc[0:2].to_csv()} .\
+            Give me the python code to perform the following data cleaning: \
+            Replace null values in integer or float type columns with the mean of that column. \
+            Replace null values in string columns with empty string. \
+            Replace values in integer or float type columns that are greater than 2 standard deviations from mean with the mean value of that column.\
+            Write this code in a function named 'pandas_clean_function' and it should take the pandas dataframe as input. \
+            Do not create a new dataframe. assume that it is given as input to the function.\
+            The output should be the dataframe after the cleaning are done.\
+            Add the required imports for the function. \
+            Do not add any code for example usage to execute the function. Write only the function code.\
+            The response should have only the python code and no additional text. \
+            I repeat.. give the python code only for the function. NO ADDITIONAL CODE."
+        return prompt
+
 
 
     def execute_python(self, python_code: str, type: str):
@@ -250,6 +269,17 @@ class AIDataFrame(pd.DataFrame):
     
     def clean_dataframe(self, clean_instructions):
         prompt = self.create_data_cleaning_prompt(clean_instructions)
+
+        completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", \
+                                                  temperature=0.2, \
+                                                  messages=[{"role": "user", "content": prompt}])
+        
+        python_code = completion.choices[0].message.content
+        answer = self.execute_python(python_code, "data_cleaning")
+        return answer
+
+    def general_clean_dataframe(self):
+        prompt = self.create_data_cleaning_prompt()
 
         completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", \
                                                   temperature=0.2, \

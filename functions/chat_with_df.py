@@ -51,10 +51,18 @@ class ChatWithPandas(AbstractFunction):
         smart_df.initialize_middleware()
 
         if type == "cleaning":
-            cleaned_df = smart_df.clean_dataframe(query)
+            if len(query)>0:
+                cleaned_df = smart_df.clean_dataframe(query)
+                response = "cleaned dataframe is saved to cleaned_df.csv"
+            else:
+                cleaned_df = smart_df.general_clean_dataframe()
+                response = "cleaned dataframe is saved to cleaned_df.csv. The following steps were done\
+                    1. Replaced null values with mean of column or empty string.\
+                    2. Replaced outliers with the mean of the column"
+                
             #save to a csv file
             cleaned_df.to_csv("cleaned_df.csv")
-            response = "cleaned dataframe is saved to cleaned_df.csv"
+            
         
         if type == "query":
             response = smart_df.query_dataframe(query)
