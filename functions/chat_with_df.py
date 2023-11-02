@@ -42,38 +42,28 @@ class ChatWithPandas(AbstractFunction):
         path = os.getcwd()
         os.chdir(path=path)
 
-        query = df.iloc[0,1]
-        type = df.iloc[0,0]
+        query = df.iloc[0,0]
         
-        req_df = df.drop([0,0], axis=1)
+        req_df = df.drop([0], axis=1)
         
-        smart_df = AIDataFrame(req_df, description="A dataframe about cars")
+        smart_df = AIDataFrame(req_df)
         smart_df.initialize_middleware()
 
-        if type == "cleaning":
-            if len(query)>0:
-                cleaned_df = smart_df.clean_dataframe(query)
-                response = "cleaned dataframe is saved to cleaned_df.csv"
-            else:
-                cleaned_df = smart_df.general_clean_dataframe()
-                response = "cleaned dataframe is saved to cleaned_df.csv. The following steps were done\
-                    1. Replaced null values with mean of column or empty string.\
-                    2. Replaced outliers with the mean of the column"
+        if query == "general cleaning":
+            cleaned_df = smart_df.general_clean_dataframe()
+            response = "cleaned dataframe is saved to cleaned_df.csv. The following steps were done\
+                1. Replaced null values with mean of column or empty string.\
+                2. Replaced outliers with the mean of the column"
                 
             #save to a csv file
             cleaned_df.to_csv("cleaned_df.csv")
             
-        
-        if type == "query":
+        else:
             response = smart_df.query_dataframe(query)
-        elif type == "plot":
-            response = smart_df.plot_dataframe(query)
-        elif type == "manipulation":
-            response = smart_df.manipulate_dataframe(query)
-        
-        
+
+            
         df_dict = {"response": [response]}
         
         ans_df = pd.DataFrame(df_dict)
-        return pd.DataFrame(ans_df)
+        return ans_df
 
