@@ -80,8 +80,9 @@ class AIDataFrame(pd.DataFrame):
             #if calculating any value first select the column then apply the required operation
             #if performing a plot, select the x and y axes and then create the plot.
             #to deal with outliers, update the data in df_copy.
-            #for replacing null values in string column, use df_copy[['str_column']].fillna(''). don't use np.object. use object.
-            #for replacing null values in int or float columns use df_copy[['int_column]].fillna(df_copy['int_column'].mean())
+            #to impute null values perform operations column-wise
+                #for replacing null values in string column, use df_copy[['str_column']].fillna(''). don't use np.object. use object.
+                #for replacing null values in int or float columns use df_copy[['int_column]].fillna(df_copy['int_column'].mean())
 
             #if the query results in updates to the dataframe
             return df_copy
