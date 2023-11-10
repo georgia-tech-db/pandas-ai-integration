@@ -126,8 +126,15 @@ class AIDataFrame(pd.DataFrame):
         os.remove("tmp.py")
         return result
     
-    def query_dataframe(self, query: str):
-        prompt = self.create_prompt(query)
+    def query_dataframe(self, query: str, custom: bool = False):
+        
+        prompt = ""
+        
+        if not custom:
+            prompt = self.create_prompt(query)
+        else:
+            #if the entire prompt is given by the user
+            prompt = query
         
         completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", \
                                                   temperature=0.2, \

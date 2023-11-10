@@ -63,4 +63,14 @@ result4 = cursor.query(chat_query4).execute()
 print(result4)
 
 
+#custom prompt
+prompt = "Write a python3.8 program for the following Pandas dataframe. The columns are title, genres and budget.\
+     Calculate the mean value of the budget column. Write the code in a function called pandas_function that takes as input the dataframe.\
+     return the result in a string format. Do not create examples.\
+     Use the given dataframe. Do not add any code for example usage to execute the function. Write only the function code."
 
+chat_query5 = f"""SELECT ChatWithPandas('custom prompt', '{prompt}', title, genres, budget) 
+              FROM sqlite_data.DUPL_DATA;"""
+
+result5 = cursor.query(chat_query5).execute()
+print(result5)

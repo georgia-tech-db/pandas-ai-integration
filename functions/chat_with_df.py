@@ -44,22 +44,28 @@ class ChatWithPandas(AbstractFunction):
 
         query = df.iloc[0,0]
         
-        req_df = df.drop([0], axis=1)
-        
-        smart_df = AIDataFrame(req_df)
-        smart_df.initialize_middleware()
+        if query != "custom prompt":
+            req_df = df.drop([0], axis=1)
+            smart_df = AIDataFrame(req_df)
+            smart_df.initialize_middleware()
 
-        if query == "general cleaning":
-            cleaned_df = smart_df.general_clean_dataframe()
-            response = "cleaned dataframe is saved to cleaned_df.csv. The following steps were done\
-                1. Replaced null values with mean of column or empty string.\
-                2. Replaced outliers with the mean of the column"
-                
-            #save to a csv file
-            cleaned_df.to_csv("cleaned_df.csv")
-            
-        else:
-            response = smart_df.query_dataframe(query)
+            if query == "general cleaning":
+                cleaned_df = smart_df.general_clean_dataframe()
+                response = "cleaned dataframe is saved to cleaned_df.csv. The following steps were done\
+                    1. Replaced null values with mean of column or empty string.\
+                    2. Replaced outliers with the mean of the column"
+                    
+                #save to a csv file
+                cleaned_df.to_csv("cleaned_df.csv")
+            else:
+                response = smart_df.query_dataframe(query)
+        
+        elif query == "custom prompt":
+            custom_query = df.iloc[0,1]
+            req_df = df.drop([0], axis=1)
+            smart_df = AIDataFrame(req_df)
+            smart_df.initialize_middleware()
+            response = smart_df.query_dataframe(custom_query, custom=True)
 
             
         df_dict = {"response": [response]}
