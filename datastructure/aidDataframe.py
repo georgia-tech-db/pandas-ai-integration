@@ -1,5 +1,12 @@
 import pandas as pd
 import openai
+import subprocess
+from gpt4all import GPT4All
+from langchain.llms import OpenAI
+from langchain.agents import create_pandas_dataframe_agent
+from langchain.chat_models import ChatOpenAI
+from langchain.agents.agent_types import AgentType
+# from prompts.error_correction_prompt import ErrorCorrectionPrompt
 from config import Config
 import re
 import os
@@ -11,6 +18,7 @@ class AIDataFrame(pd.DataFrame):
 
         #initialize pandas dataframe
         self.pd_df = df
+        print("pd_df INITTT: \n", str(self.pd_df))
         self.config = Config()
         
         if len(df)>0:
@@ -26,7 +34,8 @@ class AIDataFrame(pd.DataFrame):
             self.config = config
         
         #set name
-        self.name = name
+        if name:
+            self.name = name
 
     @property
     def col_count(self):
@@ -60,6 +69,12 @@ class AIDataFrame(pd.DataFrame):
         self.openai_model = "gpt-3.5-turbo"
         return
     
+    def initialize_local_llm_model(self, local_llm=None):
+        if local_llm:
+            local_llm_model = local_llm
+        else:
+            local_llm_model = self.config.get_local_llm_model(local_llm_model)
+        return GPT4All(local_llm_model)
 
     def create_query_prompt(self, query: str):
         prompt = f"I need you to write a python3.8 program for the following dataframe. \
@@ -142,7 +157,7 @@ class AIDataFrame(pd.DataFrame):
                 file.write(python_code)
             
             from tmp import pandas_query_function
-            answer = pandas_query_function(self.pd_df)
+            answer = query_dataframe(self.pd_df)
             
             #delete file
             os.remove("tmp.py")
@@ -184,7 +199,7 @@ class AIDataFrame(pd.DataFrame):
 
             
 
-    def query_dataframe(self, query: str):
+    def query_dataframe(self, query: str, use_local_llm=None, local_llm_model=None, csv_path=None):
         """A function used by user to query and get some values from the dataframe.
 
         Args:
@@ -194,12 +209,22 @@ class AIDataFrame(pd.DataFrame):
             A string format with the required answer
         """
         prompt = self.create_query_prompt(query)
-        
-        completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", \
-                                                  temperature=0.2, \
-                                                  messages=[{"role": "user", "content": prompt}])
-        
-        python_code = completion.choices[0].message.content
+        if use_local_llm:
+            print("USING LOCAL LLM")
+            local_llm = self.initialize_local_llm_model(local_llm=local_llm_model)
+            print("PROMPTT", prompt)
+            response = local_llm.generate(prompt)
+            print("RESPONSEEE", response)
+            if "```" in response:
+                python_code = response.split("```")[1].lstrip("python")
+            else:
+                python_code = response
+        else:
+            completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", \
+                                                    temperature=0.2, \
+                                                    messages=[{"role": "user", "content": prompt}])
+            
+            python_code = completion.choices[0].message.content
         answer = self.execute_python(python_code, "query")
 
         return f"Question is {query} and Answer is {answer}"
@@ -250,7 +275,6 @@ class AIDataFrame(pd.DataFrame):
     
     def clean_dataframe(self, clean_instructions):
         prompt = self.create_data_cleaning_prompt(clean_instructions)
-
         completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", \
                                                   temperature=0.2, \
                                                   messages=[{"role": "user", "content": prompt}])
@@ -259,6 +283,8 @@ class AIDataFrame(pd.DataFrame):
         answer = self.execute_python(python_code, "data_cleaning")
         return answer
 
+
+        
 
 
 

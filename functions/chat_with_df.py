@@ -1,5 +1,6 @@
 
 import pandas as pd
+import subprocess
 import os
 
 from evadb.catalog.catalog_type import NdArrayType
@@ -13,7 +14,10 @@ from datastructure.aidDataframe import AIDataFrame
 class ChatWithPandas(AbstractFunction):
 
     @setup(cacheable=False, function_type="FeatureExtraction", batchable=False)
-    def setup(self):
+    def setup(self, use_local_llm=False, local_llm_model=None, csv_path=None):
+        self.use_local_llm = use_local_llm
+        self.local_llm_model = local_llm_model
+        self.csv_path = csv_path
         pass
 
     @property
@@ -57,7 +61,8 @@ class ChatWithPandas(AbstractFunction):
             response = "cleaned dataframe is saved to cleaned_df.csv"
         
         if type == "query":
-            response = smart_df.query_dataframe(query)
+            print("passing local llm equals", self.use_local_llm)
+            response = smart_df.query_dataframe(query, self.use_local_llm, self.local_llm_model, self.csv_path)
         elif type == "plot":
             response = smart_df.plot_dataframe(query)
         elif type == "manipulation":
@@ -68,4 +73,4 @@ class ChatWithPandas(AbstractFunction):
         
         ans_df = pd.DataFrame(df_dict)
         return pd.DataFrame(ans_df)
-
+    
