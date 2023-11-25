@@ -28,6 +28,7 @@ class AIDataFrame(pd.DataFrame):
         #set name
         self.name = name
 
+    
     @property
     def col_count(self):
         if self.is_df_loaded:
@@ -60,72 +61,51 @@ class AIDataFrame(pd.DataFrame):
         self.openai_model = "gpt-3.5-turbo"
         return
     
+    def create_prompt(self, query):
+        prompt = f"""
+        I need you to write a python3.8 program for the following dataframe.
+        You are given the following pandas dataframe.
+        The dataframe has {self.col_count} columns. The columns are {list(self.columns)}. 
+        The datatypes of the columns are {list(self.pd_df.dtypes)}.
+        The first 2 rows of data in the csv format are {self.iloc[0:2].to_csv()} .
+        Write the python code for the following query is {query}. 
+        Write this code in a function named 'pandas_function' and it should take the pandas dataframe as input. 
+        Give below is the python code template. Create a copy of the original dataframe and perform the operations on this dataframe. Fill in the required code as per the query.
 
-    def create_query_prompt(self, query: str):
-        prompt = f"I need you to write a python3.8 program for the following dataframe. \
-            You are given the following pandas dataframe. \
-            The dataframe has {self.col_count} columns. The columns are {list(self.columns)}. \
-            The first 2 rows of data in the csv format are {self.iloc[0:2].to_csv()} .\
-            Give me the python code for the following query: {query}.\
-            Write this code in a function named 'pandas_query_function' and it should take the pandas dataframe as input. \
-            Do not create a new dataframe. assume that it is given as input to the function.\
-            Output of the function should be a string. Add the required imports for the function. \
-            Print the output in the format query: result in the function.\
-            Do not add any code for example usage to execute the function. Write only the function code.\
-            The response should have only the python code and no additional text. \
-            I repeat.. give the python code only for the function. NO ADDITIONAL CODE."
-        prompt = re.sub(' +', ' ', prompt)
-        return prompt
-    
-    def create_plot_prompt(self, plot_req: str):
-        prompt = f"I need you to write a python3.8 program for the following dataframe. \
-            You are given the following pandas dataframe. \
-            The dataframe has {self.col_count} columns. The columns are {list(self.columns)}. \
-            The first 2 rows of data in the csv format are {self.iloc[0:2].to_csv()} .\
-            Give me the python code to create the following plot: {plot_req}.\
-            Write this code in a function named 'pandas_plot_function' and it should take the pandas dataframe as input. \
-            Do not create a new dataframe. assume that it is given as input to the function.\
-            Save the output plot to a file named plot.png. do not return anything.\
-            Add the required imports for the function. \
-            Do not add any code for example usage to execute the function. Write only the function code.\
-            The response should have only the python code and no additional text. \
-            I repeat.. give the python code only for the function. NO ADDITIONAL CODE."
-        prompt = re.sub(' +', ' ', prompt)
-        return prompt
-    
-    def create_manipulation_prompt(self, manipulation: str): 
-        prompt = f"I need you to write a python3.8 program for the following dataframe. \
-            You are given the following pandas dataframe. \
-            The dataframe has {self.col_count} columns. The columns are {list(self.columns)}. \
-            The first 2 rows of data in the csv format are {self.iloc[0:2].to_csv()} .\
-            Give me the python code to perform the following manipulation: {manipulation}.\
-            Write this code in a function named 'pandas_manipulation_function' and it should take the pandas dataframe as input. \
-            Do not create a new dataframe. assume that it is given as input to the function.\
-            The output should be the dataframe after the manipulations are done.\
-            Add the required imports for the function. \
-            Do not add any code for example usage to execute the function. Write only the function code.\
-            The response should have only the python code and no additional text. \
-            I repeat.. give the python code only for the function. NO ADDITIONAL CODE."
+        ```
+        def pandas_function(pd_df):
+            df_copy = pd_df.copy()
+
+            #if remove duplicates, select the column then use the df.drop_duplicates
+            #if calculating any value first select the column then apply the required operation
+            #if performing a plot, select the x and y axes and then create the plot.
+            #to deal with outliers, update the data in df_copy.
+            #to impute null values perform operations column-wise
+                #for replacing null values in string column, use df_copy[['str_column']].fillna(''). don't use np.object. use object.
+                #for replacing null values in int or float columns use df_copy[['int_column]].fillna(df_copy['int_column'].mean())
+
+            #if the query results in updates to the dataframe
+            return df_copy
+
+            #elif query results in a single value
+            #val = df['col1'].mean()
+            #return val
+
+        ```
+        If the query results in a new dataframe, save it to a file called new_df.csv. Return the string "dataframe saved to new_df.csv".
+        If the query requests a plot, then save the plot to file called plot.png. Return the string "plot saved to plot.png".
+        If the final result is a single value, just return the value.
+        Add the required imports for the function. 
+        Do not add any code for example usage to execute the function. Write only the function code.
+        The response should have only the python code and no additional text. 
+        I repeat.. give the python code only for the function. NO ADDITIONAL CODE. 
+        Do not add any additional identifier in the beginning to indicate that it's python code."
+        """
         prompt = re.sub(' +', ' ', prompt)
         return prompt
 
-    def create_data_cleaning_prompt(self, clean_query: str):
-        prompt = f"I need you to write a python3.8 program for the following dataframe. \
-            You are given the following pandas dataframe. \
-            The dataframe has {self.col_count} columns. The columns are {list(self.columns)}. \
-            The first 2 rows of data in the csv format are {self.iloc[0:2].to_csv()} .\
-            Give me the python code to perform the following data cleaning: {clean_query}.\
-            Write this code in a function named 'pandas_clean_function' and it should take the pandas dataframe as input. \
-            Do not create a new dataframe. assume that it is given as input to the function.\
-            The output should be the dataframe after the cleaning are done.\
-            Add the required imports for the function. \
-            Do not add any code for example usage to execute the function. Write only the function code.\
-            The response should have only the python code and no additional text. \
-            I repeat.. give the python code only for the function. NO ADDITIONAL CODE."
-        return prompt
 
-
-    def execute_python(self, python_code: str, type: str):
+    def execute_python(self, python_code: str):
         """
          A function to execute the python code and return result. 
          
@@ -137,126 +117,90 @@ class AIDataFrame(pd.DataFrame):
          Return the result of the execution.
         """
 
-        if type=="query":
-            with open("tmp.py", "w+") as file:
-                file.write(python_code)
-            
-            from tmp import pandas_query_function
-            answer = pandas_query_function(self.pd_df)
-            
-            #delete file
-            os.remove("tmp.py")
-
-            return answer
+        with open("tmp.py", "w") as file:
+            file.write(python_code)
         
-        elif type == "plot":
-            with open("tmp.py", "w+") as file:
-                file.write(python_code)
-            
-            from tmp import pandas_plot_function
-            pandas_plot_function(self.pd_df)
+        from tmp import pandas_function
+        result = pandas_function(self.pd_df)
 
-            #delete file
-            os.remove("tmp.py")
-
-            return "Your plot is stored in plot.png"
-        
-        elif type == "manipulation":
-            with open("tmp.py", "w+") as file:
-                file.write(python_code)
-            
-            from tmp import pandas_manipulation_function
-            output  = pandas_manipulation_function(self.pd_df)
-            
-            os.remove("tmp.py")
-            
-            return output
-        
-        elif type == "data_cleaning":
-            with open("tmp.py", "w+") as file:
-                file.write(python_code)
-            
-            from tmp import pandas_clean_function
-            output  = pandas_clean_function(self.pd_df)
-
-            os.remove("tmp.py")
-            return output
-
-            
-
-    def query_dataframe(self, query: str):
-        """A function used by user to query and get some values from the dataframe.
-
-        Args:
-            query (str): User query
-
-        Returns:
-            A string format with the required answer
-        """
-        prompt = self.create_query_prompt(query)
-        
-        completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", \
-                                                  temperature=0.2, \
-                                                  messages=[{"role": "user", "content": prompt}])
-        
-        python_code = completion.choices[0].message.content
-        answer = self.execute_python(python_code, "query")
-
-        return f"Question is {query} and Answer is {answer}"
+        os.remove("tmp.py")
+        return result
     
-    def plot_dataframe(self, plot_query: str):
-        """A function used by user to plot images using the data in the dataframe.
-
-        Args:
-            plot_query (str): User's request for the plot
-
-        Returns:
-            A string format with the location of the generated image
-        """
+    def query_dataframe(self, query: str, custom: bool = False):
         
-        prompt = self.create_plot_prompt(plot_query)
+        prompt = ""
+        
+        if not custom:
+            prompt = self.create_prompt(query)
+        else:
+            #if the entire prompt is given by the user
+            prompt = query
         
         completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", \
                                                   temperature=0.2, \
                                                   messages=[{"role": "user", "content": prompt}])
         
         python_code = completion.choices[0].message.content
-        self.execute_python(python_code, "plot")
-
-        return f"please find the plot in the file plot.png"
+        result = self.execute_python(python_code)
     
+        return result
 
-    def manipulate_dataframe(self, manipulation_query):
-        """A function used by user to manipulate the dataframe.
+    #     prompt = self.create_data_cleaning_prompt(clean_instructions)
 
-        Args:
-            manipulation_query (str): User's request for the manipulation
-
-        Returns:
-            Pandas dataframe with the output after manipulation.
-        """
+    #     completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", \
+    #                                               temperature=0.2, \
+    #                                               messages=[{"role": "user", "content": prompt}])
         
-        prompt = self.create_manipulation_prompt(manipulation_query)
-        
+    #     python_code = completion.choices[0].message.content
+    #     answer = self.execute_python(python_code, "data_cleaning")
+    #     return answer
+
+    def general_clean_dataframe(self):
+        prompt = f"""I need you to write a python3.8 program for the following dataframe. 
+            You are given the following pandas dataframe. 
+            The dataframe has {self.col_count} columns. The columns are {list(self.columns)}. 
+            The first 2 rows of data in the csv format are {self.iloc[0:2].to_csv()} .
+            Give me the python code to perform the following data cleaning: 
+            Replace null values in integer or float type columns with the mean of that column. 
+            Replace null values in string columns with empty string. 
+            Replace values in integer or float type columns that are greater than 2 standard deviations from mean with the mean value of that column.
+            Remove the duplicate values.
+            Write this code in a function named 'pandas_function' and it should take the pandas dataframe as input. output should be the cleaned dataframe.
+            Give below is the python code template. Create a copy of the original dataframe and perform the operations on this dataframe. 
+            Fill in the required code as per the requirement.
+
+            ```
+            def pandas_function(pd_df):
+                df_copy = pd_df.copy()
+
+                #if remove duplicates, select the column then use the df.drop_duplicates
+                #if calculating any value first select the column then apply the required operation
+                #if performing a plot, select the x and y axes and then create the plot.
+                #to deal with outliers, update the data in df_copy.
+                #for replacing null values in string column, use df_copy[['str_column']].fillna(''). don't use np.object. use object.
+                #for replacing null values in int or float columns use df_copy[['int_column]].fillna(df_copy['int_column'].mean())
+
+                #if the query results in updates to the dataframe
+                return df_copy
+
+                #elif query results in a single value
+                #val = df['col1'].mean()
+                #return val
+
+            ```
+            Add the required imports for the function. 
+            Do not add any code for example usage to execute the function. Write only the function code.
+            The response should have only the python code and no additional text.
+            I repeat.. give the python code only for the function. NO ADDITIONAL CODE."
+            Do not add any additional identifier in the beginning to indicate that it's python code."
+            """
+
         completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", \
                                                   temperature=0.2, \
                                                   messages=[{"role": "user", "content": prompt}])
         
         python_code = completion.choices[0].message.content
-        print(python_code)
-        answer = self.execute_python(python_code, "manipulation")
-
-        return answer
-    
-    def clean_dataframe(self, clean_instructions):
-        prompt = self.create_data_cleaning_prompt(clean_instructions)
-
-        completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", \
-                                                  temperature=0.2, \
-                                                  messages=[{"role": "user", "content": prompt}])
-        
-        python_code = completion.choices[0].message.content
-        answer = self.execute_python(python_code, "data_cleaning")
+        answer = self.execute_python(python_code)
         return answer
 
 
