@@ -1,3 +1,4 @@
+from gpt4all import GPT4All
 import pandas as pd
 import openai
 from config import Config
@@ -143,6 +144,23 @@ class AIDataFrame(pd.DataFrame):
         python_code = completion.choices[0].message.content
         result = self.execute_python(python_code)
     
+        return result
+
+    def query_localgpt(self, query: str, local_llm_model: str, custom: bool = False):
+        prompt = ""
+        
+        if not custom:
+            prompt = self.create_prompt(query)
+        else:
+            prompt = query
+        
+        local_llm = GPT4All(local_llm_model)
+        response = local_llm.generate(prompt).choices[0].message.content
+        if "```" in response:
+            python_code = response.split("```")[1].lstrip("python")
+        else:
+            python_code = response
+        result = self.execute_python(python_code)
         return result
 
     #     prompt = self.create_data_cleaning_prompt(clean_instructions)
