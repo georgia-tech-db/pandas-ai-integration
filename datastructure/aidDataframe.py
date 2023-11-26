@@ -146,6 +146,16 @@ class AIDataFrame(pd.DataFrame):
     
         return result
 
+    #     prompt = self.create_data_cleaning_prompt(clean_instructions)
+
+    #     completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", \
+    #                                               temperature=0.2, \
+    #                                               messages=[{"role": "user", "content": prompt}])
+
+    #     python_code = completion.choices[0].message.content
+    #     answer = self.execute_python(python_code, "data_cleaning")
+    #     return answer
+    
     def query_localgpt(self, query: str, local_llm_model: str):
         prompt = self.create_prompt(query)   
         local_llm = GPT4All(local_llm_model)
