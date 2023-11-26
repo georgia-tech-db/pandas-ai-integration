@@ -148,10 +148,8 @@ class AIDataFrame(pd.DataFrame):
 
     def query_localgpt(self, query: str, local_llm_model: str):
         prompt = self.create_prompt(query)   
-        print("PROMPTT:", prompt)
         local_llm = GPT4All(local_llm_model)
         response = local_llm.generate(prompt)
-        print("RESPONSE: ", response)
         if "```" in response:
             python_code = response.split("```")[1].lstrip("python")
         else:

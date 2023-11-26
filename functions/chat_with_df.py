@@ -13,10 +13,9 @@ from datastructure.aidDataframe import AIDataFrame
 class ChatWithPandas(AbstractFunction):
 
     @setup(cacheable=False, function_type="FeatureExtraction", batchable=False)
-    def setup(self, use_local_llm=False, local_llm_model=None, csv_path=None):
+    def setup(self, use_local_llm=False, local_llm_model=None):
         self.use_local_llm = use_local_llm
         self.local_llm_model = local_llm_model
-        self.csv_path = csv_path
         pass
 
     @property
