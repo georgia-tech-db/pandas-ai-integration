@@ -146,32 +146,18 @@ class AIDataFrame(pd.DataFrame):
     
         return result
 
-    def query_localgpt(self, query: str, local_llm_model: str, custom: bool = False):
-        prompt = ""
-        
-        if not custom:
-            prompt = self.create_prompt(query)
-        else:
-            prompt = query
-        
+    def query_localgpt(self, query: str, local_llm_model: str):
+        prompt = self.create_prompt(query)   
+        print("PROMPTT:", prompt)
         local_llm = GPT4All(local_llm_model)
-        response = local_llm.generate(prompt).choices[0].message.content
+        response = local_llm.generate(prompt)
+        print("RESPONSE: ", response)
         if "```" in response:
             python_code = response.split("```")[1].lstrip("python")
         else:
             python_code = response
         result = self.execute_python(python_code)
         return result
-
-    #     prompt = self.create_data_cleaning_prompt(clean_instructions)
-
-    #     completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", \
-    #                                               temperature=0.2, \
-    #                                               messages=[{"role": "user", "content": prompt}])
-        
-    #     python_code = completion.choices[0].message.content
-    #     answer = self.execute_python(python_code, "data_cleaning")
-    #     return answer
 
     def general_clean_dataframe(self):
         prompt = f"""I need you to write a python3.8 program for the following dataframe. 
