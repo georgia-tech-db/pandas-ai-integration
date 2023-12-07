@@ -13,7 +13,9 @@ from datastructure.aidDataframe import AIDataFrame
 class ChatWithPandas(AbstractFunction):
 
     @setup(cacheable=False, function_type="FeatureExtraction", batchable=False)
-    def setup(self):
+    def setup(self, use_local_llm=False, local_llm_model=None):
+        self.use_local_llm = use_local_llm
+        self.local_llm_model = local_llm_model
         pass
 
     @property
@@ -64,10 +66,11 @@ class ChatWithPandas(AbstractFunction):
             custom_query = df.iloc[0,1]
             req_df = df.drop([0], axis=1)
             smart_df = AIDataFrame(req_df)
-            smart_df.initialize_middleware()
-            response = smart_df.query_dataframe(custom_query, custom=True)
-
-            
+            if not self.use_local_llm:               
+                smart_df.initialize_middleware()
+                response = smart_df.query_dataframe(custom_query, custom=True)
+            else:
+                response = smart_df.query_localgpt(custom_query, self.local_llm_model)
         df_dict = {"response": [response]}
         
         ans_df = pd.DataFrame(df_dict)
